@@ -1,54 +1,40 @@
 #!/usr/bin/node
 
 (function (){
-    //constants
-    const fs		= require('fs')
+    const version       = 0.01
+    const name          = "lp4"
     const TelegramBot	= require('node-telegram-bot-api')
-    const chats		= require('./chats')
-    const usage         = function(){
-        console.error('usage : ' + process.argv[0] + '[telegram_token]')
-        return 1
-    }    
-    if (process.argv.length < 2){
-        return usage()
-    }
-    const token = process.argv[2]
-    const bot = new TelegramBot(token, {polling: true});
-    
-    bot.on('message', (msg) => {
-	const chatId = msg.chat.id;
-    });
+    const chats         = require('./chats')
+    const config        = require('./config.json')
+    const bot           = new TelegramBot(config.token, {polling: true});
 
+    function onText(msg, match, entry){
+        if (entry.answer_method !== undefined) {
+            return answerUsingMethod(msg, match, entry.answer_method)
+        }
+        answerUsingAnswers(msg, match, entry.answers)
+    }
+    
+    function answerUsingMethod(msg, match, method){
+	    bot.sendMessage(msg.chat.id, method(match, config.master_id === msg.from.id))
+    }
+
+    function answerUsingAnswers(msg, match, answers){
+        console.log(msg, match, answers);
+	    var chatId = msg.chat.id;
+	    var max = answers.length;
+	    var min = 0;
+	    var choice = Math.floor(Math.random() * (max - min)) + min
+	    var resp = answers[choice];
+	    bot.sendMessage(chatId, resp);
+    }
+    
     for (var i = 0; i < chats.entries.length; i++) {
-	(function (i){
-	    var entry = chats.entries[i];
-	    if (undefined === entry.answers &&
-		undefined !== entry.answer_method){
-		bot.onText(entry.regex,
-			   function (msg, match) {
-			       bot.sendMessage(msg.chat.id,
-					       entry.answer_method(match));
-			   });
-	    }
-	    else {
-		bot.onText(entry.regex,
-			   function (msg, match){
-			       answer(msg, match, entry.answers)
-			   });
-	    }
-	})(i);
+	    (function (i){
+	        var entry = chats.entries[i];
+		    bot.onText(entry.regex, function (msg, match){onText(msg, match, entry)});
+	    })(i);
     }
 
-    function answer(msg, match, answers){
-	console.log(msg, match, answers);
-	var chatId = msg.chat.id;
-	var max = answers.length;
-	var min = 0;
-	var choice = Math.floor(Math.random() * (max - min)) + min
-	var resp = answers[choice];
-	bot.sendMessage(chatId, resp);
-    }
-
-    console.log('up and running')
-    
+    console.log(name + ' ' + version + ' up and running')    
 })();

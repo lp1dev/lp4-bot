@@ -1,5 +1,6 @@
-var sys = require('sys')
-var execSync = require('child_process').execSync;
+const sys = require('sys')
+const execSync = require('child_process').execSync;
+const not_allowed_string = "I'm sorry, I'm afraid I can't let you do that."
 
 var methods = {
     tell: function (match){
@@ -10,11 +11,11 @@ var methods = {
 	    return match[2] + '!'
 	}
     },
-    ping: function (match){
-	return execSync("ping -c 3 " + match[1]);	
+    ping: function (match, master){
+	return master ? execSync("ping -c 3 " + match[1]) : not_allowed_string;
     },
     nmap: function(match){
-	return execSync("nmap " + match[2]);
+	return master ? execSync("nmap " + match[2]) : not_allowed_string;
     }
 }
 
