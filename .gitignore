@@ -1,2 +1,4 @@
 node_modules
 config.json
+.tmp.json
+lp4.json

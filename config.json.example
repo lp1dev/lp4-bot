@@ -1,5 +1,6 @@
 {
     "name": "lp4",
     "token": "42",
-    "master_id": 4242
+    "master_id": 4242,
+    "db_file": ".tmp.json"
 }

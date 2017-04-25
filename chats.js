@@ -1,8 +1,13 @@
 const util               = require('util')
 const execSync           = require('child_process').execSync;
 const config             = require('./config.json')
+const db                 = require('./db')
 const not_allowed_string = "I'm sorry, I'm afraid I can't let you do that."
-const s = util.format
+const s                  = util.format
+
+var people = db.get('people')
+var learned = db.get('learned')
+var is_learning = undefined
 
 function replace_pronouns(string, me, them){
     return string
@@ -31,21 +36,49 @@ var methods = {
     nmap: function(match){
 	    return master ? execSync("nmap " + match[2]) : not_allowed_string;
     },
-    who: function(match, master, chat){
+    who: function(match, master, from){
         switch (match[2]) {
         case "you":
             return s('I am %s !', config.name);
             break
+        case from.first_name:
         case "i":
         case "I":
-            if (chat.first_name !== undefined) {
-                return master ? s('You are %s, my teacher !', chat.first_name) : s('You are %s', chat.first_name)
+            if (from.first_name !== undefined) {
+                return master ? s('You are %s, my teacher !', from.first_name) : s('You are %s', from.first_name)
                 break
             }
         default:
+            if (people['names'][match[2]] !== undefined){
+                var id = people['names'][match[2]]
+                return s('I\'ve had %s chats with this person !', people[id].messages)
+                break;
+            }
+            if (people['nicknames'][match[2]] !== undefined){
+                var id = people['nicknames'][match[2]]
+                return s('%s is %s', match[2], people[id].first_name) 
+            }
             return 'Mmh, I don\'t know, I\'m sorry.'
             break;
         }
+    },
+    nickname: function(match, master, from){
+        people['nicknames'][match[2]] = from.id
+        db.insert('people', people)
+        return s('Ok ! I\'ll call you %s ! Just kidding %s ;)', from.first_name, match[2])
+    },
+    start_learning: function(match, master, from){
+        learned[match[1].toLowerCase()] = {from: from.id, answers:[]}
+        is_learning = match[1].toLowerCase()
+        return s('Ok, what should I say if someone tells me %s ?', match[1])
+    },
+    learn_answer: function(match, master, from){
+        if (undefined !== is_learning){
+            learned[is_learning].answers.push(match[1])
+            db.insert('learned', learned)
+            return 'Ok ! Noted'
+        }
+        return 'Why should I say that ?'
     }
 }
 
@@ -88,12 +121,24 @@ var entries =
             answers: ["Yep ?", "It's me !", "What can I do you for ?"]
         },
         {
-            regex: /(\bhi|hello|hey\b)(.*?)/i,
+            regex: /^(hi|hello|hey)(.*?)/i,
             answers: ["Hi !", "Hello.", "Hey !"]
         },
         {
-            regex: /(\bthanks|thank you\b)(.*?)/i,
+            regex: /^(thanks|thank you)(.*?)/i,
             answers: ["Well, you're welcome", "You're welcome"]
+        },
+        {
+            regex: /call me (.+)/i,
+            answer_method: methods.nickname
+        },
+        {
+            regex: /learn (.+)/i,
+            answer_method: methods.start_learning
+        },
+        {
+            regex: /should say (.+)/i,
+            answer_method: methods.learn_answer
         }
     ]
 
