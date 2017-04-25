@@ -1,0 +1,26 @@
+{
+  "name": "lp4-bot",
+  "version": "0.0.1",
+  "description": "Telegram chat bot",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lp1dev/lp4-bot.git"
+  },
+  "keywords": [
+    "Telegram",
+    "bot"
+  ],
+  "author": "Jeremie Amsellem",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lp1dev/lp4-bot/issues"
+  },
+  "homepage": "https://github.com/lp1dev/lp4-bot#readme",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.27.0"
+  }
+}
