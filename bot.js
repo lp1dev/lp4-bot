@@ -40,7 +40,7 @@
     function            answerUsingAnswers(msg, match, answers){
 	    var chatId = msg.chat.id
 	    var choice = getRandomInt(0, answers.length) - 1
-	    var resp = answers[choice ? choice : choice + 1];
+	    var resp = answers[choice == -1 ? choice + 1 : choice];
         console.log('answers, choice', answers, choice)
 	    bot.sendMessage(chatId, resp);
     }

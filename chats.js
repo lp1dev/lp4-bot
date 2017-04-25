@@ -86,7 +86,7 @@ var methods = {
     list_learned: function(match){
         var resp = "I have learned : "
         for (var value in learned){
-            resp += s('%s with %s\n', value, people[learned[value].from].first_name)
+            resp += s('%s (with %s), ', value, people[learned[value].from].first_name)
         }
         return resp
     }
