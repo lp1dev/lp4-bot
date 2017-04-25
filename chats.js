@@ -69,7 +69,9 @@ var methods = {
         return s('Ok ! I\'ll call you %s ! Just kidding %s ;)', from.first_name, match[2])
     },
     start_learning: function(match, master, from){
-        learned[match[2].toLowerCase()] = {from: from.id, answers:[]}
+        if (undefined === learned[match[2].toLowerCase()]){
+            learned[match[2].toLowerCase()] = {from: from.id, answers:[]}
+        }
         is_learning = match[2].toLowerCase()
         return s('Ok, what should I say if someone tells me %s ?', match[2])
     },

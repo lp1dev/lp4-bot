@@ -31,18 +31,27 @@
 	    bot.sendMessage(msg.chat.id, method(match, config.master_id === msg.from.id, msg.from))
     }
 
+    function            getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
     function            answerUsingAnswers(msg, match, answers){
 	    var chatId = msg.chat.id
-	    var max = answers.length;
-	    var min = 0;
-	    var choice = Math.floor(Math.random() * (max - min)) + min
-	    var resp = answers[choice];
+	    var choice = getRandomInt(0, answers.length) - 1
+	    var resp = answers[choice ? choice : choice + 1];
+        console.log('answers, choice', answers, choice)
 	    bot.sendMessage(chatId, resp);
     }
 
     function            match_learned(msg){
-        if (undefined !== learned[msg.text.toLowerCase()])
-            answerUsingAnswers(msg, null, learned[msg.text.toLowerCase()].answers)
+        var raw_str = msg.text.toLowerCase()
+        for (var value in learned){
+            if (raw_str.indexOf(config.name)!== -1 && raw_str.indexOf(value) !== -1){
+                answerUsingAnswers(msg, null, learned[value].answers)
+            }
+        }
     }
     
     function            onMessage(msg){
@@ -63,7 +72,9 @@
         }
         people['names'][msg.from.first_name] = id
         db.insert('people', people)
-        match_learned(msg)
+        if (msg.text !== undefined){
+            match_learned(msg)
+        }
     }
     
     for (var i = 0; i < chats.entries.length; i++) {
