@@ -64,13 +64,14 @@ var methods = {
     },
     nickname: function(match, master, from){
         people['nicknames'][match[2]] = from.id
+        prople[from.id].nickname = match[2]
         db.insert('people', people)
         return s('Ok ! I\'ll call you %s ! Just kidding %s ;)', from.first_name, match[2])
     },
     start_learning: function(match, master, from){
-        learned[match[1].toLowerCase()] = {from: from.id, answers:[]}
-        is_learning = match[1].toLowerCase()
-        return s('Ok, what should I say if someone tells me %s ?', match[1])
+        learned[match[2].toLowerCase()] = {from: from.id, answers:[]}
+        is_learning = match[2].toLowerCase()
+        return s('Ok, what should I say if someone tells me %s ?', match[2])
     },
     learn_answer: function(match, master, from){
         if (undefined !== is_learning){
@@ -79,15 +80,18 @@ var methods = {
             return 'Ok ! Noted'
         }
         return 'Why should I say that ?'
+    },
+    list_learned: function(match){
+        var resp = "I have learned : "
+        for (var value in learned){
+            resp += s('%s with %s\n', value, people[learned[value].from].first_name)
+        }
+        return resp
     }
 }
 
 var entries =
     [
-	    {
-	        regex: /say (.+) (to?) (\w+)/i,
-	        answer_method: methods.tell
-	    },
 	    {
 	        regex: /tell (\w+) (to?)(.+)/i,
 	        answer_method: methods.tell
@@ -133,13 +137,17 @@ var entries =
             answer_method: methods.nickname
         },
         {
-            regex: /learn (.+)/i,
+            regex: /^(learn) (.+)/i,
             answer_method: methods.start_learning
         },
         {
             regex: /should say (.+)/i,
             answer_method: methods.learn_answer
-        }
+        },
+        {
+            regex: /what (.+) learn/i,
+            answer_method: methods.list_learned
+        }        
     ]
 
 module.exports = {
