@@ -20,26 +20,32 @@
     });
 
     for (var i = 0; i < chats.entries.length; i++) {
-	var entry = chats.entries[i];
-	if (undefined === entry.answers){
-	    bot.onText(entry.regex,
-		       function (msg, match) {
-			   bot.sendMessage(msg.chat.id,
-					   entry.answer_method(match));
-		       });
-	}
-	else {
-	    bot.onText(entry.regex,
+	(function (i){
+	    var entry = chats.entries[i];
+	    if (undefined === entry.answers &&
+		undefined !== entry.answer_method){
+		bot.onText(entry.regex,
+			   function (msg, match) {
+			       bot.sendMessage(msg.chat.id,
+					       entry.answer_method(match));
+			   });
+	    }
+	    else {
+		bot.onText(entry.regex,
 			   function (msg, match){
 			       answer(msg, match, entry.answers)
 			   });
-	}
+	    }
+	})(i);
     }
 
     function answer(msg, match, answers){
 	console.log(msg, match, answers);
-	const chatId = msg.chat.id;
-	const resp = match[1];
+	var chatId = msg.chat.id;
+	var max = answers.length;
+	var min = 0;
+	var choice = Math.floor(Math.random() * (max - min)) + min
+	var resp = answers[choice];
 	bot.sendMessage(chatId, resp);
     }
 

@@ -12,6 +12,9 @@ var methods = {
     },
     ping: function (match){
 	return execSync("ping -c 3 " + match[1]);	
+    },
+    nmap: function(match){
+	return execSync("nmap " + match[2]);
     }
 }
 
@@ -32,6 +35,14 @@ var entries =
 	{
 	    regex: /ping (.+)/i,
 	    answer_method: methods.ping
+	},
+	{
+	    regex: /ports are open on (.+)/i,
+	    answer_method: methods.nmap
+	},
+	{
+	    regex: /how (.+) you/i,
+	    answers : ["Pretty well ! Thanks", "not too bad", "Fine ! Ta", "I'm fine :), wbu ?"]
 	}
     ]
 
