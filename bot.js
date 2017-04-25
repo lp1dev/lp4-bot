@@ -14,20 +14,7 @@
     }
     const token = process.argv[2]
     const bot = new TelegramBot(token, {polling: true});
-
-    bot.onText(/help (.+)/, (msg, match) => {
-	console.log('help')
-	const chatId = msg.chat.id;
-	const rest = "I cannot help you";
-	bot.sendMessage(chatId, rest);
-    });
     
-    bot.onText(/\/echo (.+)/, (msg, match) => {
-	const chatId = msg.chat.id;
-	const resp = match[1];
-	bot.sendMessage(chatId, resp);
-    });
-
     bot.on('message', (msg) => {
 	const chatId = msg.chat.id;
     });
@@ -55,5 +42,7 @@
 	const resp = match[1];
 	bot.sendMessage(chatId, resp);
     }
-        
+
+    console.log('up and running')
+    
 })();
