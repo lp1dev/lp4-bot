@@ -78,11 +78,15 @@
                 var path = config.verbs_dir + '/' + verb;
                 if (fs.existsSync(path + '.js')){
                     method = require(path).action
-                    return method({adjectives: p.adjectives,
-                                   question: question,
-                                   subject: subject,
-                                   extra: p.extra}, msg.from.first_name)
+                    var resp =  method({adjectives: p.adjectives,
+                                        question: question,
+                                        subject: subject,
+                                        extra: p.extra}, msg.from.first_name)
+                    if (undefined !== resp){
+                        bot.sendMessage(msg.chat.id, resp)
+                    }
                 }
+             
             }
             index++
         }
@@ -94,10 +98,7 @@
         if (msg.text !== undefined) {
             let processed = nlp.process(msg.text, msg.from.first_name)
             console.log('processed',processed)
-            let resp = handleProcessed(processed, msg)
-            if (undefined !== resp){
-                bot.sendMessage(msg.chat.id, resp)
-            }
+            handleProcessed(processed, msg)
         }
     }
 

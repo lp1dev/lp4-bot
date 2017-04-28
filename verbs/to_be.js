@@ -19,7 +19,8 @@
     
     function to_be(p, from) {
         console.log('to be', p.question, p.subject, p.adjectives)
-
+        m = db.get('memory')
+        
         if (undefined === p.question) {
             if (undefined !== p.subject) {
                 let person = m.people.names[p.subject]                
@@ -37,7 +38,6 @@
                     return `Ok !`
                 }
             }
-            return 'I understood the verb to be, but could not identify the question.'
         }
         switch (p.question) {
         case 'who':
