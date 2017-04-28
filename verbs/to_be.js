@@ -1,37 +1,31 @@
 (function (){
-    const db = require('../db.js')
-    const config = require('../config.json')
+    const db        = require('../db.js')
+    const config    = require('../config.json')
+    const s         = require('util').format
+    let m           = db.get('memory')
 
-    function who(question, verb, subject, from) {
-        var people = db.get('people')
-        if (undefined === subject){
-            return 'Who is what ?'
-        }
-        if (undefined !== people.names[subject]) {
-            var id = people.names[subject]
-            var resp = people[id].bio
-            for (var i = 0; i < people[id].adjectives.length; i++){
-                var adjective = people[id].adjectives[i]
-                resp += 'This person is ' + adjective.adjective + ' according to ' + adjective.from
+    function who(p, from) {
+        if (undefined !== m.people.names[p.subject]) {
+            let id = m.people.names[p.subject]
+            let resp = m.people[id].bio
+            for (let i = 0; i < m.people[id].adjectives.length; i++){
+                let adjective = m.people[id].adjectives[i]
+                resp += s(` this person is %s according to %s`, adjective.adjective, adjective.from)
             }
             return resp
         }
-        if (undefined !== people.nicknames[subject]) {
-            return JSON.stringify(people.nicknames[subject])
-        }
-        return 'I am sorry, I do not know '+ subject
+        return s(`I am sorry, I do not know %s`, p.subject)
     }
     
-    function to_be(question, verb, subject, adjective, from) {
-        var people = db.get('people')
-        console.log('to be', question, verb, subject)
+    function to_be(p, from) {
+        console.log('to be', p.question, p.subject, p.adjectives)
 
-        if (undefined === question) {
-            if (undefined !== subject && undefined !== adjective) {
-                var person = people.names[subject]
+        if (undefined === p.question) {
+            if (undefined !== p.subject && undefined !== p.adjective) {
+                let person = m.people.names[p.subject]
                 if (undefined !== person){
-                    people[person].adjectives.push({from: from, adjective: adjective})
-                    return 'Ok, ' + from +' I will remember that you said ' + subject + ' is ' + adjective
+                    m.people[person].adjectives.push({from: from, adjective: adjective})
+                    return `Ok !`
                 }
                 else {
                     return 'I am sorry, I do not know this person'
@@ -39,13 +33,13 @@
             }
             return 'I understood the verb to be, but could not identify the question.'
         }
-        switch (question) {
+        switch (p.question) {
         case 'who':
-            return who(question, verb, subject)
+            return who(p)
             break
         }
         return 'I understood the verb to be, but not the rest'
     }
     
-    module.exports = {name: 'to_be', action: to_be, regex: '\b(is|are|being|to be|am)\b'}
+    module.exports = {name: 'to_be', action: to_be, regex: '(is|are|being|to be|am)'}
 })()

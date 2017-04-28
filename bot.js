@@ -18,7 +18,7 @@
         if (m === undefined){
             m = {}
         }
-        for (let i = 0; i < memories.length; i++){
+        for (let i = 0; i < types.length; i++){
             let type = types[i]
             if (undefined === m[type]) {
                 m[type] = {}
@@ -38,36 +38,6 @@
                 m.people['nicknames'] = {}
             m.people['names'][config.name] = 0
         }
-    }
-
-    function            getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-    
-    function            answerUsingAnswers(msg, match, answers){
-	    var chatId = msg.chat.id
-	    var choice = getRandomInt(0, answers.length) - 1
-	    var resp = answers[choice == -1 ? choice + 1 : choice];
-        console.log('answers, choice', answers, choice)
-	    bot.sendMessage(chatId, resp);
-    }
-
-    function            match_learned(msg){
-        var status = false
-        var raw_str;
-        if (undefined !== msg.text)
-            raw_str = msg.text.toLowerCase()
-        for (var value in learned){
-            if (raw_str &&
-                ((raw_str.indexOf(config.name)!== -1 || msg.chat.type === 'private') &&
-                 raw_str.indexOf(value) !== -1)) {
-                answerUsingAnswers(msg, null, learned[value].answers)
-                status = true
-            }
-        }
-        return status
     }
 
     function            newPerson(from){
@@ -91,15 +61,15 @@
         m.people['names'][msg.from.first_name.toLowerCase()] = id
     }
 
-    function            handleProcessed(questions, verbs, subjects, adjectives, msg){
+    function            handleProcessed(p, msg){
         var done = false;
         var index = 0;
         
         while (!done) {
-            var verb = verbs[index]
-            var question = questions[index]
-            var subject = subjects[index]
-            console.log('sentence ' + index, question, verb, subject, adjectives)
+            var verb = p.verbs[index]
+            var question = p.questions[index]
+            var subject = p.subjects[index]
+            console.log('sentence ' + index, question, verb, subject, p.adjectives)
             if (undefined === verb) {
                 done = true
             }
@@ -107,11 +77,7 @@
                 var path = config.verbs_dir + '/' + verb;
                 if (fs.existsSync(path + '.js')){
                     method = require(path).action
-                    return method(question, verb, subject, adjectives, msg.from.first_name)
-                }
-                else{
-                    console.log('path : ', path)
-                    return 'I\'m sorry I don\t know this verb.'
+                    return method({verb: verb, question: question, subject: subject}, msg.from.first_name)
                 }
             }
             index++
@@ -122,16 +88,11 @@
         console.log('message : ', msg)
         storeConversation(msg)
         if (msg.text !== undefined) {
-            if (!match_learned(msg)) {
-                var processed = nlp.process(msg.text, msg.from.first_name)
-                var resp = handleProcessed(processed.questions,
-                                           processed.verbs,
-                                           processed.subjects,
-                                           processed.adjectives,
-                                           msg)
-                if (undefined !== resp){
-                    bot.sendMessage(msg.chat.id, resp)
-                }
+            let processed = nlp.process(msg.text, msg.from.first_name)
+            console.log('processed',processed)
+            let resp = handleProcessed(processed, msg)
+            if (undefined !== resp){
+                bot.sendMessage(msg.chat.id, resp)
             }
         }
     }
@@ -139,6 +100,7 @@
     process.on('SIGINT', function() {
         console.log(config.name + " shutting down");
         process.exit();
+        db.insert('memory', m)
     });
     
     init()
