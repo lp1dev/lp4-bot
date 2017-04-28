@@ -21,10 +21,18 @@
         console.log('to be', p.question, p.subject, p.adjectives)
 
         if (undefined === p.question) {
-            if (undefined !== p.subject && undefined !== p.adjective) {
+            if (undefined !== p.subject) {
                 let person = m.people.names[p.subject]
-                if (undefined !== person){
-                    m.people[person].adjectives.push({from: from, adjective: adjective})
+                
+                if (p.adjectives.length === 0){
+                    if (undefined !== p.extras){
+                        return s('I did not understand the adjective %s', p.extras)
+                    }
+                }
+                else if (undefined !== person){
+                    p.adjectives.forEach((adjective) => {
+                        m.people[person].adjectives.push({from: from, adjective: adjective});
+                    })
                     return `Ok !`
                 }
                 else {

@@ -38,6 +38,7 @@
                 m.people['nicknames'] = {}
             m.people['names'][config.name] = 0
         }
+        db.insert('memory', m)
     }
 
     function            newPerson(from){
@@ -77,7 +78,7 @@
                 var path = config.verbs_dir + '/' + verb;
                 if (fs.existsSync(path + '.js')){
                     method = require(path).action
-                    return method({verb: verb, question: question, subject: subject}, msg.from.first_name)
+                    return method({adjectives: p.adjectives, question: question, subject: subject}, msg.from.first_name)
                 }
             }
             index++
