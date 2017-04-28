@@ -1,6 +1,10 @@
 {
     "name": "lp4",
     "token": "42",
-    "master_id": 4242,
-    "db_file": ".tmp.json"
+    "master_id": 218933452,
+    "debug": true,
+    "db_file": "basic-knowledge.json",
+    "verbs_dir": "./verbs",
+    "default_bio": "A person I've had a few chats with.",
+    "bot_bio": "A gentle chatbot made by @lp1."
 }

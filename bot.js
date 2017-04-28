@@ -3,32 +3,41 @@
 (function (){
     const version       = 0.01
     const TelegramBot	= require('node-telegram-bot-api')
-    const chats         = require('./chats')
+    const fs            = require('fs')
     const config        = require('./config.json')
     const db            = require('./db')
-    const bot           = new TelegramBot(config.token, {polling: true});
-    var people          = db.get('people')
-    var learned         = db.get('learned')
+    const nlp           = require('./simple-nlp/nlp')
+    const bot           = new TelegramBot(config.token, {polling: true})
+    //knowledge
+    let m               = db.get('memory')
  
     function            init(){
-        if (learned === undefined){
-            learned = {}
-            db.insert('learned', learned)
+        let types = ['people', 'chats', 'adjectives']
+        
+        nlp.init()
+        if (m === undefined){
+            m = {}
         }
-    }
-    
-    function            onText(msg, match, entry){
-        if (config.debug){
-            console.log('onText :: match, msg', match, msg)
+        for (let i = 0; i < memories.length; i++){
+            let type = types[i]
+            if (undefined === m[type]) {
+                m[type] = {}
+            }
         }
-        if (entry.answer_method !== undefined) {
-            return answerUsingMethod(msg, match, entry.answer_method)
+        if (undefined === m.people[0]){
+            m.people[0] = {
+                first_name: config.name,
+                messages: 0,
+                conversations: {},
+                bio: config.bot_bio,
+                adjectives: []
+            }
+            if (undefined === m.people['names'])
+                m.people['names'] = {}
+            if (undefined === m.people['nickname'])
+                m.people['nicknames'] = {}
+            m.people['names'][config.name] = 0
         }
-        answerUsingAnswers(msg, match, entry.answers)
-    }
-    
-    function            answerUsingMethod(msg, match, method){
-	    bot.sendMessage(msg.chat.id, method(match, config.master_id === msg.from.id, msg.from))
     }
 
     function            getRandomInt(min, max) {
@@ -46,46 +55,93 @@
     }
 
     function            match_learned(msg){
-        var raw_str = msg.text.toLowerCase()
+        var status = false
+        var raw_str;
+        if (undefined !== msg.text)
+            raw_str = msg.text.toLowerCase()
         for (var value in learned){
-            if (raw_str.indexOf(config.name)!== -1 && raw_str.indexOf(value) !== -1){
+            if (raw_str &&
+                ((raw_str.indexOf(config.name)!== -1 || msg.chat.type === 'private') &&
+                 raw_str.indexOf(value) !== -1)) {
                 answerUsingAnswers(msg, null, learned[value].answers)
+                status = true
             }
+        }
+        return status
+    }
+
+    function            newPerson(from){
+        return {
+            first_name: from.first_name,
+            messages: 0,
+            conversations: {},
+            bio: config.default_bio,
+            adjectives: []
+        }
+    }
+    
+    function            storeConversation(msg){
+        var id = msg.from.id
+        if (undefined === m.people[id]){
+            m.people[id] = newPerson(msg.from)
+        }
+        m.people[id].conversations[msg.chat.id] = msg.chat
+        m.people[id].messages++
+        m.people[id].conversations[msg.chat.id] = msg.chat
+        m.people['names'][msg.from.first_name.toLowerCase()] = id
+    }
+
+    function            handleProcessed(questions, verbs, subjects, adjectives, msg){
+        var done = false;
+        var index = 0;
+        
+        while (!done) {
+            var verb = verbs[index]
+            var question = questions[index]
+            var subject = subjects[index]
+            console.log('sentence ' + index, question, verb, subject, adjectives)
+            if (undefined === verb) {
+                done = true
+            }
+            else{
+                var path = config.verbs_dir + '/' + verb;
+                if (fs.existsSync(path + '.js')){
+                    method = require(path).action
+                    return method(question, verb, subject, adjectives, msg.from.first_name)
+                }
+                else{
+                    console.log('path : ', path)
+                    return 'I\'m sorry I don\t know this verb.'
+                }
+            }
+            index++
         }
     }
     
     function            onMessage(msg){
-        var id = msg.from.id
-        if (undefined === people){
-            people = {}
-        }
-        if (undefined === people[id]){
-            people[id] = {
-                first_name: msg.from.first_name,
-                messages: 0
+        console.log('message : ', msg)
+        storeConversation(msg)
+        if (msg.text !== undefined) {
+            if (!match_learned(msg)) {
+                var processed = nlp.process(msg.text, msg.from.first_name)
+                var resp = handleProcessed(processed.questions,
+                                           processed.verbs,
+                                           processed.subjects,
+                                           processed.adjectives,
+                                           msg)
+                if (undefined !== resp){
+                    bot.sendMessage(msg.chat.id, resp)
+                }
             }
         }
-        people[id].messages++;
-        if (people['names'] === undefined){
-            people['names'] = {}
-            people['nicknames'] = {}
-        }
-        people['names'][msg.from.first_name] = id
-        db.insert('people', people)
-        if (msg.text !== undefined){
-            match_learned(msg)
-        }
     }
+
+    process.on('SIGINT', function() {
+        console.log(config.name + " shutting down");
+        process.exit();
+    });
     
-    for (var i = 0; i < chats.entries.length; i++) {
-	    (function (i){
-	        var entry = chats.entries[i];
-		    bot.onText(entry.regex, function (msg, match){onText(msg, match, entry)});
-	    })(i);
-    }
-    
+    init()
     bot.on('message', onMessage);
-    
-    init()    
     console.log(config.name + ' ' + version + ' up and running')    
 })();

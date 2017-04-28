@@ -4,6 +4,11 @@
     const file = config.db_file;
     
     module.exports = {
+        setFile: function(filename){
+            if (undefined !== filename){
+                file = filename
+            }
+        },
         insert: function(key, value){
             if (!fs.existsSync(file)){
                 var data = {}
