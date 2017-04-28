@@ -78,7 +78,10 @@
                 var path = config.verbs_dir + '/' + verb;
                 if (fs.existsSync(path + '.js')){
                     method = require(path).action
-                    return method({adjectives: p.adjectives, question: question, subject: subject}, msg.from.first_name)
+                    return method({adjectives: p.adjectives,
+                                   question: question,
+                                   subject: subject,
+                                   extra: p.extra}, msg.from.first_name)
                 }
             }
             index++

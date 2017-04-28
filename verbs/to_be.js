@@ -14,7 +14,7 @@
             }
             return resp
         }
-        return s(`I am sorry, I do not know %s`, p.subject)
+        return s(`I am sorry, I do not know %s`, p.extra)
     }
     
     function to_be(p, from) {
@@ -22,21 +22,19 @@
 
         if (undefined === p.question) {
             if (undefined !== p.subject) {
-                let person = m.people.names[p.subject]
-                
-                if (p.adjectives.length === 0){
-                    if (undefined !== p.extras){
-                        return s('I did not understand the adjective %s', p.extras)
+                let person = m.people.names[p.subject]                
+                if (undefined !== person){
+                    if (p.adjectives.length === 0){
+                        if (p.extra !== undefined){
+                            return s('I did not understand the adjective %s', p.extra)
+                        }
                     }
-                }
-                else if (undefined !== person){
-                    p.adjectives.forEach((adjective) => {
-                        m.people[person].adjectives.push({from: from, adjective: adjective});
-                    })
+                    else {
+                        p.adjectives.forEach((adjective) => {
+                            m.people[person].adjectives.push({from: from, adjective: adjective});
+                        })
+                    }
                     return `Ok !`
-                }
-                else {
-                    return 'I am sorry, I do not know this person'
                 }
             }
             return 'I understood the verb to be, but could not identify the question.'
