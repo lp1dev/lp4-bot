@@ -10,8 +10,8 @@
     const bot           = new TelegramBot(config.token, {polling: true})
     //knowledge
     let m               = db.get('memory')
-    let context
- 
+    let context         = {}
+
     function            init(){
         let types = ['people', 'chats', 'adjectives']
         
@@ -65,11 +65,12 @@
         m.people['names'][msg.from.first_name.toLowerCase()] = id
     }
 
-    function            setContext(verb, question, subject, p) {
+    function            setContext(verb, question, subject, p, chat_id) {
         //verb = context.verb === undefined ? verb : context.verb
+        var _context = context[chat_id]
         if (["he", "him", "her", "she", "they", "it", "them"].indexOf(subject) !== -1
-            && context !== undefined) {
-            subject = context.subject === undefined ? subject : context.subject
+            && _context !== undefined) {
+            subject = _context.subject === undefined ? subject : _context.subject
         }
         return subject
     }
@@ -82,7 +83,7 @@
             let verb = p.verbs[index]
             let question = p.questions[index]
             let subject = p.subjects[index]
-            subject = setContext(verb, question, subject, p)
+            subject = setContext(verb, question, subject, p, msg.chat.id)
             if (undefined === verb) {
                 done = true
             }
@@ -95,7 +96,7 @@
                                         subject: subject,
                                         extra: p.extra}, msg.from.first_name)
                     if (undefined !== resp){
-                        context = {verb: verb, subject: subject, question: question, adjectives: p.adjectives}
+                        context[msg.chat.id] = {verb: verb, subject: subject, question: question, adjectives: p.adjectives}
                         return bot.sendMessage(msg.chat.id, resp)
                     }
                 }
