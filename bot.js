@@ -10,6 +10,7 @@
     const bot           = new TelegramBot(config.token, {polling: true})
     //knowledge
     let m               = db.get('memory')
+    let context
  
     function            init(){
         let types = ['people', 'chats', 'adjectives']
@@ -30,7 +31,8 @@
                 messages: 0,
                 conversations: {},
                 bio: config.bot_bio,
-                adjectives: []
+                adjectives: [],
+                status: 'good'
             }
             if (undefined === m.people['names'])
                 m.people['names'] = {}
@@ -47,7 +49,8 @@
             messages: 0,
             conversations: {},
             bio: config.default_bio,
-            adjectives: []
+            adjectives: [],
+            status: null
         }
     }
     
@@ -62,31 +65,40 @@
         m.people['names'][msg.from.first_name.toLowerCase()] = id
     }
 
-    function            handleProcessed(p, msg){
-        let done = false;
-        let index = 0;
-        
+    function            setContext(verb, question, subject, p) {
+        //verb = context.verb === undefined ? verb : context.verb
+        if (["he", "him", "her", "she", "they", "it", "them"].indexOf(subject) !== -1
+            && context !== undefined) {
+            subject = context.subject === undefined ? subject : context.subject
+        }
+        return subject
+    }
+
+    function            handleProcessed(p, msg) {
+        let done = false
+        let index = 0
+
         while (!done) {
             let verb = p.verbs[index]
             let question = p.questions[index]
             let subject = p.subjects[index]
-            console.log('sentence (question, verb, subject)' + index, question, verb, subject, p.adjectives)
+            subject = setContext(verb, question, subject, p)
             if (undefined === verb) {
                 done = true
             }
             else{
-                var path = config.verbs_dir + '/' + verb;
-                if (fs.existsSync(path + '.js')){
+                let path = config.verbs_dir + '/' + verb;
+                if (fs.existsSync(path + '.js')) {
                     method = require(path).action
-                    var resp =  method({adjectives: p.adjectives,
+                    let resp =  method({adjectives: p.adjectives,
                                         question: question,
                                         subject: subject,
                                         extra: p.extra}, msg.from.first_name)
                     if (undefined !== resp){
-                        bot.sendMessage(msg.chat.id, resp)
+                        context = {verb: verb, subject: subject, question: question, adjectives: p.adjectives}
+                        return bot.sendMessage(msg.chat.id, resp)
                     }
                 }
-             
             }
             index++
         }

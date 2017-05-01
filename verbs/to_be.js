@@ -14,7 +14,17 @@
             }
             return resp
         }
-        return s(`I am sorry, I do not know %s`, p.extra)
+        return s(`I am sorry, I do not know`)
+    }
+
+    function how(p, from) {
+        if (undefined !== m.people.names[p.subject]) {
+            let id = m.people.names[p.subject]
+            if (m.people[id].status !== null) {
+                return s(`%s is %s`, p.subject, m.people[id].status)
+            }
+            return s(`I do not know how is %s`, p.subject)
+        }
     }
     
     function to_be(p, from) {
@@ -23,7 +33,7 @@
         
         if (undefined === p.question) {
             if (undefined !== p.subject) {
-                let person = m.people.names[p.subject]                
+                let person = m.people.names[p.subject]
                 if (undefined !== person){
                     if (p.adjectives.length === 0){
                         if (p.extra !== undefined){
@@ -33,6 +43,7 @@
                     else {
                         p.adjectives.forEach((adjective) => {
                             m.people[person].adjectives.push({from: from, adjective: adjective});
+                            m.people[person].status = adjective
                         })
                     }
                     return `Ok !`
@@ -43,8 +54,10 @@
         case 'who':
             return who(p)
             break
+        case 'how':
+            return how(p)
+            break
         }
-        return 'I understood the verb to be, but not the rest'
     }
     
     module.exports = {name: 'to_be', action: to_be, regex: '(is|are|being|to be|am)'}
