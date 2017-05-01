@@ -63,14 +63,14 @@
     }
 
     function            handleProcessed(p, msg){
-        var done = false;
-        var index = 0;
+        let done = false;
+        let index = 0;
         
         while (!done) {
-            var verb = p.verbs[index]
-            var question = p.questions[index]
-            var subject = p.subjects[index]
-            console.log('sentence ' + index, question, verb, subject, p.adjectives)
+            let verb = p.verbs[index]
+            let question = p.questions[index]
+            let subject = p.subjects[index]
+            console.log('sentence (question, verb, subject)' + index, question, verb, subject, p.adjectives)
             if (undefined === verb) {
                 done = true
             }
