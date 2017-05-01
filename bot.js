@@ -11,9 +11,10 @@
     //knowledge
     let m               = db.get('memory')
     let context         = {}
+    let chats           = []
 
     function            init(){
-        let types = ['people', 'chats', 'adjectives']
+        let types = ['people', 'adjectives']
         
         nlp.init()
         if (m === undefined){
@@ -56,6 +57,9 @@
     
     function            storeConversation(msg){
         var id = msg.from.id
+        if (chats.indexOf(msg.chat) == -1) {
+            chats.push(msg.chat)
+        }
         if (undefined === m.people[id]){
             m.people[id] = newPerson(msg.from)
         }
@@ -66,7 +70,6 @@
     }
 
     function            setContext(verb, question, subject, p, chat_id) {
-        //verb = context.verb === undefined ? verb : context.verb
         var _context = context[chat_id]
         if (["he", "him", "her", "she", "they", "it", "them"].indexOf(subject) !== -1
             && _context !== undefined) {
@@ -105,7 +108,7 @@
         }
     }
     
-    function            onMessage(msg){
+    function            onMessage(msg) {
         console.log('message : ', msg)
         storeConversation(msg)
         if (msg.text !== undefined) {
@@ -115,10 +118,18 @@
         }
     }
 
+    function            sayBye() {
+        console.log(chats)
+        chats.forEach((chat) => {
+            bot.sendMessage(chat.id, config.bye)
+        })
+    }
+    
     process.on('SIGINT', function() {
-        console.log(config.name + " shutting down");
-        process.exit();
+        sayBye()
+        console.log(config.name + " shutting down...")
         db.insert('memory', m)
+        setTimeout(() => process.exit(), 2000)
     });
     
     init()
