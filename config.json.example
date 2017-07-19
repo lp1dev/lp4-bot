@@ -3,8 +3,8 @@
     "token": "42",
     "master_id": 218933452,
     "debug": true,
-    "db_file": "basic-knowledge.json",
+    "knowledge_db": "./memory/basic-knowledge.json",
     "verbs_dir": "./verbs",
     "default_bio": "A person I've had a few chats with.",
-    "bot_bio": "A gentle chatbot made by @lp1."
+    "bot_bio": "A gentle chatbot made by @lp1dev."
 }

@@ -2,14 +2,15 @@
     const db        = require('../db.js')
     const config    = require('../config.json')
     const s         = require('util').format
+    const person    = require('../concepts/person')
     let m           = db.get('memory')
 
     function who(p, from) {
-        if (undefined !== m.people.names[p.subject]) {
-            let id = m.people.names[p.subject]
+        let person = person.get(p.subject)
+        if (person) {
             let resp = m.people[id].bio
-            for (let i = 0; i < m.people[id].adjectives.length; i++){
-                let adjective = m.people[id].adjectives[i]
+            for (let i = 0; i < person.adjectives.length; i++){
+                let adjective = person.adjectives[i]
                 resp += s(` this person is %s according to %s`, adjective.adjective, adjective.from)
             }
             return resp
@@ -18,10 +19,10 @@
     }
 
     function how(p, from) {
-        if (undefined !== m.people.names[p.subject]) {
-            let id = m.people.names[p.subject]
-            if (m.people[id].status !== null) {
-                return s(`%s is %s`, p.subject, m.people[id].status)
+        let person = person.get(p.subject)
+        if (person) {
+            if (person.status !== null) {
+                return s(`%s is %s`, p.subject, person.status)
             }
             return s(`I do not know how is %s`, p.subject)
         }
@@ -33,7 +34,7 @@
         
         if (undefined === p.question) {
             if (undefined !== p.subject) {
-                let person = m.people.names[p.subject]
+                let person = person.get(p.subject)
                 if (undefined !== person){
                     if (p.adjectives.length === 0){
                         if (p.extra !== undefined){
@@ -42,8 +43,8 @@
                     }
                     else {
                         p.adjectives.forEach((adjective) => {
-                            m.people[person].adjectives.push({from: from, adjective: adjective});
-                            m.people[person].status = adjective
+//                            m.people[person].adjectives.push({from: from, adjective: adjective});
+                            person.setStatus(adjective)
                         })
                     }
                     return `Ok !`

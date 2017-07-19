@@ -1,0 +1,1 @@
+{"vocabulary":{"adjectives":{},"questions":{"who":{},"what":{},"when":{},"where":{},"which":{},"how":{}},"verbs":{"to_be":{"name":"to_be","regex":"(is|are|being|to be|am)"},"to_mean":{"name":"to_mean","regex":"(means|is like)"}},"punctuation":".?!,'\"; "},"memory":{}}

@@ -8,65 +8,29 @@
     const db            = require('./db')
     const nlp           = require('./simple-nlp/nlp')
     const bot           = new TelegramBot(config.token, {polling: true})
+  
     //knowledge
     let m               = db.get('memory')
+    let person          = require('./concepts/person')
     let context         = {}
     let chats           = []
 
     function            init(){
-        let types = ['people', 'adjectives']
-        
         nlp.init()
-        if (m === undefined){
-            m = {}
-        }
-        for (let i = 0; i < types.length; i++){
-            let type = types[i]
-            if (undefined === m[type]) {
-                m[type] = {}
-            }
-        }
-        if (undefined === m.people[0]){
-            m.people[0] = {
-                first_name: config.name,
-                messages: 0,
-                conversations: {},
-                bio: config.bot_bio,
-                adjectives: [],
-                status: 'good'
-            }
-            if (undefined === m.people['names'])
-                m.people['names'] = {}
-            if (undefined === m.people['nickname'])
-                m.people['nicknames'] = {}
-            m.people['names'][config.name] = 0
-        }
-        db.insert('memory', m)
+        person.init()
     }
 
-    function            newPerson(from){
-        return {
-            first_name: from.first_name,
-            messages: 0,
-            conversations: {},
-            bio: config.default_bio,
-            adjectives: [],
-            status: null
-        }
-    }
-    
     function            storeConversation(msg){
         var id = msg.from.id
         if (chats.indexOf(msg.chat) == -1) {
             chats.push(msg.chat)
         }
         if (undefined === m.people[id]){
-            m.people[id] = newPerson(msg.from)
+            m.people[id] = person.create(id, msg.from)
         }
         m.people[id].conversations[msg.chat.id] = msg.chat
         m.people[id].messages++
         m.people[id].conversations[msg.chat.id] = msg.chat
-        m.people['names'][msg.from.first_name.toLowerCase()] = id
     }
 
     function            setContext(verb, question, subject, p, chat_id) {

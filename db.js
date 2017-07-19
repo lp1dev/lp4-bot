@@ -1,8 +1,8 @@
 (function (){
     const fs = require('fs')
     const config = require('./config.json')
-    const file = config.db_file;
-    
+    const file = config.knowledge_db;
+
     module.exports = {
         setFile: function(filename){
             if (undefined !== filename){
